@@ -47,11 +47,11 @@ const Navigation = () => {
                 <button
                   onClick={() => toggleDropdown('employee')}
                   onMouseEnter={() => setOpenDropdown('employee')}
-                  className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium ${
-                    ['/profile', '/attendance'].includes(location.pathname) 
-                      ? 'bg-primary text-white' 
-                      : 'text-gray-300 hover:bg-gray-700'
-                  }`}
+                   className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium ${
+                     ['/profile', '/attendance', '/calendar'].includes(location.pathname) 
+                       ? 'bg-primary text-white' 
+                       : 'text-gray-300 hover:bg-gray-700'
+                   }`}
                 >
                   Employee
                   <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,15 +73,24 @@ const Navigation = () => {
                       >
                         Profile
                       </Link>
-                      <Link
-                        to="/attendance"
-                        className={`block px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-600 hover:text-white transition-colors ${
-                          location.pathname === '/attendance' ? 'bg-primary text-white' : ''
-                        }`}
-                        onClick={closeDropdown}
-                      >
-                        Attendance
-                      </Link>
+                       <Link
+                         to="/attendance"
+                         className={`block px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-600 hover:text-white transition-colors ${
+                           location.pathname === '/attendance' ? 'bg-primary text-white' : ''
+                         }`}
+                         onClick={closeDropdown}
+                       >
+                         Attendance
+                       </Link>
+                       <Link
+                         to="/calendar"
+                         className={`block px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-600 hover:text-white transition-colors ${
+                           location.pathname === '/calendar' ? 'bg-primary text-white' : ''
+                         }`}
+                         onClick={closeDropdown}
+                       >
+                         Calendar
+                       </Link>
                     </div>
                   </div>
                 )}

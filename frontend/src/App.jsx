@@ -13,6 +13,7 @@ import LeaveManagement from './pages/LeaveManagement';
 import Payroll from './components/Payroll';
 import Employees from './components/Employees';
 import LeaveApproval from './pages/LeaveApproval';
+import HRMSCalendar from './pages/Calendar';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -85,6 +86,14 @@ function App() {
           element={
             <PrivateRoute requiredRole="Admin">
               <LeaveApproval />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <PrivateRoute>
+              <HRMSCalendar />
             </PrivateRoute>
           }
         />
