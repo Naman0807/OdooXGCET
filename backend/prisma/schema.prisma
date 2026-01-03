@@ -10,14 +10,19 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  employeeId    String    @unique
-  role          String    // "Employee" or "Admin"
-  employee      Employee?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  employeeId            String    @unique
+  role                  String    // "Employee" or "Admin"
+  isEmailVerified       Boolean   @default(false)
+  emailVerificationToken String?   // Store verification token
+  emailVerificationExpires DateTime? // Token expiration
+  emailVerifiedAt       DateTime?  // When email was verified
+  employee              Employee?
+  emailVerifications    EmailVerification[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([email])
 }
@@ -97,4 +102,19 @@ model Salary {
 
   @@unique([employeeId, month, year])
   @@index([employeeId])
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  email     String
+  purpose   String   // "registration", "password_reset", "email_change"
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId, purpose])
 }

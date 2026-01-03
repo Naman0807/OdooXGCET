@@ -11,6 +11,8 @@ const SignIn = () => {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showVerificationWarning, setShowVerificationWarning] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -89,6 +91,11 @@ const SignIn = () => {
             Don't have an account?{' '}
             <Link to="/signup" className="text-primary hover:underline">
               Sign Up
+            </Link>
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            <Link to="/resend-verification" className="text-primary hover:underline">
+              Need to verify your email?
             </Link>
           </p>
         </div>

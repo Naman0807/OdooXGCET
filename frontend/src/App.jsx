@@ -2,6 +2,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import EmailVerification from './pages/EmailVerification';
+import ResendVerification from './pages/ResendVerification';
+import Rules from './pages/Rules';
+import RuleCategory from './pages/RuleCategory';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Attendance from './pages/Attendance';
@@ -18,6 +22,10 @@ function App() {
       <Routes>
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/verify-email/:token" element={<EmailVerification />} />
+        <Route path="/resend-verification" element={<ResendVerification />} />
+        <Route path="/rules" element={<Rules />} />
+        <Route path="/rules/:category" element={<RuleCategory />} />
         <Route
           path="/dashboard"
           element={

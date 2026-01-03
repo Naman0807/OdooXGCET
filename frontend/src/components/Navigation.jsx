@@ -87,13 +87,13 @@ const Navigation = () => {
                 )}
               </div>
 
-              {/* HR Dropdown */}
+               {/* HR Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('hr')}
                   onMouseEnter={() => setOpenDropdown('hr')}
                   className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium ${
-                    ['/leave', '/payroll'].includes(location.pathname) 
+                    ['/leave', '/payroll', '/rules'].includes(location.pathname) 
                       ? 'bg-primary text-white' 
                       : 'text-gray-300 hover:bg-gray-700'
                   }`}
@@ -105,7 +105,7 @@ const Navigation = () => {
                 </button>
                 {openDropdown === 'hr' && (
                   <div 
-                    className="absolute z-10 mt-2 w-52 bg-gray-700 rounded-md shadow-lg"
+                    className="absolute z-10 mt-2 w-56 bg-gray-700 rounded-md shadow-lg"
                     onMouseLeave={closeDropdown}
                   >
                     <div className="py-2">
@@ -126,6 +126,15 @@ const Navigation = () => {
                         onClick={closeDropdown}
                       >
                         Payroll
+                      </Link>
+                      <Link
+                        to="/rules"
+                        className={`block px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-600 hover:text-white transition-colors ${
+                          location.pathname === '/rules' || location.pathname.startsWith('/rules/') ? 'bg-primary text-white' : ''
+                        }`}
+                        onClick={closeDropdown}
+                      >
+                        HR Rules & Policies
                       </Link>
                     </div>
                   </div>

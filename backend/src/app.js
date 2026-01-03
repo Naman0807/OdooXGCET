@@ -7,6 +7,7 @@ const employeeRoutes = require('./routes/employees');
 const attendanceRoutes = require('./routes/attendance');
 const leaveRoutes = require('./routes/leave');
 const payrollRoutes = require('./routes/payroll');
+const rulesRoutes = require('./routes/rules');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leave', leaveRoutes);
 app.use('/api/payroll', payrollRoutes);
+app.use('/api/rules', rulesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
