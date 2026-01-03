@@ -40,7 +40,7 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card hover:scale-105 transition-transform cursor-pointer">
+        <div onClick={() => window.location.href = '/profile'} className="card hover:scale-105 transition-transform cursor-pointer">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-primary bg-opacity-20 p-3 rounded-lg">
               <svg className="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 20 20">
@@ -52,7 +52,7 @@ const Dashboard = () => {
           <p className="text-gray-400 text-sm">View and edit your personal information</p>
         </div>
 
-        <div className="card hover:scale-105 transition-transform cursor-pointer">
+        <div onClick={() => window.location.href = '/attendance'} className="card hover:scale-105 transition-transform cursor-pointer">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-secondary bg-opacity-20 p-3 rounded-lg">
               <svg className="w-6 h-6 text-secondary" fill="currentColor" viewBox="0 0 20 20">
@@ -64,7 +64,7 @@ const Dashboard = () => {
           <p className="text-gray-400 text-sm">Check in/out and view attendance history</p>
         </div>
 
-        <div className="card hover:scale-105 transition-transform cursor-pointer">
+        <div onClick={() => window.location.href = '/leave'} className="card hover:scale-105 transition-transform cursor-pointer">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-green-600 bg-opacity-20 p-3 rounded-lg">
               <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -76,7 +76,7 @@ const Dashboard = () => {
           <p className="text-gray-400 text-sm">Apply for leave and check status</p>
         </div>
 
-        <div className="card hover:scale-105 transition-transform cursor-pointer">
+        <div onClick={() => window.location.href = '/payroll'} className="card hover:scale-105 transition-transform cursor-pointer">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-yellow-600 bg-opacity-20 p-3 rounded-lg">
               <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">

@@ -36,4 +36,19 @@ export const attendanceAPI = {
   getAll: () => api.get('/attendance/all'),
 };
 
+// Leave endpoints
+export const leaveAPI = {
+  apply: (data) => api.post('/leave/apply', data),
+  getMyLeaves: () => api.get('/leave/my'),
+  getPending: () => api.get('/leave/pending'),
+  approve: (id, data) => api.put(`/leave/${id}/approve`, data),
+  reject: (id, data) => api.put(`/leave/${id}/reject`, data),
+};
+
+// Payroll endpoints
+export const payrollAPI = {
+  getMyPayroll: () => api.get('/payroll/my'),
+  getAll: () => api.get('/payroll/all'),
+};
+
 export default api;
