@@ -1,248 +1,308 @@
-import React, { useState, useEffect } from 'react';
-import { employeeAPI, leaveAPI, attendanceAPI } from '../services/api';
-import { getUser } from '../utils/auth';
-import Navigation from '../components/Navigation';
+import React, { useState, useEffect } from "react";
+import { employeeAPI, leaveAPI, attendanceAPI } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
+import Navigation from "../components/Navigation";
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState({
-    totalEmployees: 0,
-    pendingLeaves: 0,
-    presentToday: 0,
-    totalDepartments: 0
-  });
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+	const { user } = useAuth();
+	const [stats, setStats] = useState({
+		totalEmployees: 0,
+		pendingLeaves: 0,
+		presentToday: 0,
+		totalDepartments: 0,
+	});
+	const [recentActivity, setRecentActivity] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
 
-  const user = getUser();
+	useEffect(() => {
+		fetchDashboardData();
+	}, []);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+	const fetchDashboardData = async () => {
+		try {
+			// Fetch all data in parallel
+			const [employeesRes, leavesRes, attendanceRes] = await Promise.all([
+				employeeAPI.getAll(),
+				leaveAPI.getPending(),
+				attendanceAPI.getAll(),
+			]);
 
-  const fetchDashboardData = async () => {
-    try {
-      // Fetch all data in parallel
-      const [employeesRes, leavesRes, attendanceRes] = await Promise.all([
-        employeeAPI.getAll(),
-        leaveAPI.getPending(),
-        attendanceAPI.getAll()
-      ]);
+			const employees = employeesRes.data;
+			const pendingLeaves = leavesRes.data;
+			const attendance = attendanceRes.data;
 
-      const employees = employeesRes.data;
-      const pendingLeaves = leavesRes.data;
-      const attendance = attendanceRes.data;
+			// Calculate today's present employees
+			const today = new Date().toISOString().split("T")[0];
+			const presentToday = attendance.filter(
+				(record) =>
+					new Date(record.date).toISOString().split("T")[0] === today &&
+					record.status === "Present"
+			).length;
 
-      // Calculate today's present employees
-      const today = new Date().toISOString().split('T')[0];
-      const presentToday = attendance.filter(record => 
-        new Date(record.date).toISOString().split('T')[0] === today &&
-        record.status === 'Present'
-      ).length;
+			// Get unique departments
+			const departments = [...new Set(employees.map((emp) => emp.department))];
 
-      // Get unique departments
-      const departments = [...new Set(employees.map(emp => emp.department))];
+			// Update stats
+			setStats({
+				totalEmployees: employees.length,
+				pendingLeaves: pendingLeaves.length,
+				presentToday,
+				totalDepartments: departments.length,
+			});
 
-      // Update stats
-      setStats({
-        totalEmployees: employees.length,
-        pendingLeaves: pendingLeaves.length,
-        presentToday,
-        totalDepartments: departments.length
-      });
+			// Create recent activity data
+			const activities = [];
 
-      // Create recent activity data
-      const activities = [];
-      
-      // Add recent leave requests
-      pendingLeaves.slice(0, 3).forEach(leave => {
-        activities.push({
-          type: 'leave',
-          title: `${leave.employee.firstName} ${leave.employee.lastName} requested leave`,
-          description: `${leave.leaveType} - ${Math.ceil((new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24)) + 1} days`,
-          status: 'Pending',
-          statusColor: 'text-yellow-400'
-        });
-      });
+			// Add recent leave requests
+			pendingLeaves.slice(0, 3).forEach((leave) => {
+				activities.push({
+					type: "leave",
+					title: `${leave.employee.firstName} ${leave.employee.lastName} requested leave`,
+					description: `${leave.leaveType} - ${
+						Math.ceil(
+							(new Date(leave.endDate) - new Date(leave.startDate)) /
+								(1000 * 60 * 60 * 24)
+						) + 1
+					} days`,
+					status: "Pending",
+					statusColor: "text-yellow-400",
+				});
+			});
 
-      // Add recent attendance
-      attendance.slice(0, 3).forEach(record => {
-        activities.push({
-          type: 'attendance',
-          title: `${record.employee.firstName} ${record.employee.lastName} checked ${record.checkInTime ? 'in' : 'out'}`,
-          description: record.checkInTime ? `On time - ${new Date(record.checkInTime).toLocaleTimeString()}` : 'Checked out',
-          status: 'Present',
-          statusColor: 'text-green-400'
-        });
-      });
+			// Add recent attendance
+			attendance.slice(0, 3).forEach((record) => {
+				activities.push({
+					type: "attendance",
+					title: `${record.employee.firstName} ${
+						record.employee.lastName
+					} checked ${record.checkInTime ? "in" : "out"}`,
+					description: record.checkInTime
+						? `On time - ${new Date(record.checkInTime).toLocaleTimeString()}`
+						: "Checked out",
+					status: "Present",
+					statusColor: "text-green-400",
+				});
+			});
 
-      // Add newest employees
-      const newestEmployees = employees
-        .sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate))
-        .slice(0, 2);
-      
-      newestEmployees.forEach(employee => {
-        activities.push({
-          type: 'employee',
-          title: 'New employee joined',
-          description: `${employee.firstName} ${employee.lastName} - ${employee.position}`,
-          status: 'New',
-          statusColor: 'text-blue-400'
-        });
-      });
+			// Add newest employees
+			const newestEmployees = employees
+				.sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate))
+				.slice(0, 2);
 
-      setRecentActivity(activities.slice(0, 5));
+			newestEmployees.forEach((employee) => {
+				activities.push({
+					type: "employee",
+					title: "New employee joined",
+					description: `${employee.firstName} ${employee.lastName} - ${employee.position}`,
+					status: "New",
+					statusColor: "text-blue-400",
+				});
+			});
 
-    } catch (error) {
-      setError('Failed to fetch dashboard data');
-      console.error('Dashboard data fetch error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+			setRecentActivity(activities.slice(0, 5));
+		} catch (error) {
+			setError("Failed to fetch dashboard data");
+			console.error("Dashboard data fetch error:", error);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  if (loading) {
-    return <div className="min-h-screen bg-dark flex items-center justify-center">Loading dashboard...</div>;
-  }
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-dark flex items-center justify-center">
+				Loading dashboard...
+			</div>
+		);
+	}
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-dark flex items-center justify-center">
-        <div className="text-red-400 text-center">
-          <p className="text-xl mb-4">Error loading dashboard</p>
-          <p className="text-sm">{error}</p>
-          <button 
-            onClick={fetchDashboardData}
-            className="mt-4 px-4 py-2 bg-primary rounded hover:bg-primary/80"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+	if (error) {
+		return (
+			<div className="min-h-screen bg-dark flex items-center justify-center">
+				<div className="text-red-400 text-center">
+					<p className="text-xl mb-4">Error loading dashboard</p>
+					<p className="text-sm">{error}</p>
+					<button
+						onClick={fetchDashboardData}
+						className="mt-4 px-4 py-2 bg-primary rounded hover:bg-primary/80"
+					>
+						Retry
+					</button>
+				</div>
+			</div>
+		);
+	}
 
-  return (
-    <div className="min-h-screen bg-dark">
-      <Navigation />
-      <div className="p-6">
+	return (
+		<div className="min-h-screen bg-dark">
+			<Navigation />
+			<div className="p-6">
+				<div className="mb-8">
+					<h2 className="text-3xl font-bold text-white mb-2">
+						Admin Dashboard
+					</h2>
+					<p className="text-gray-400">
+						Manage employees, attendance, and system settings
+					</p>
+				</div>
 
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h2>
-        <p className="text-gray-400">Manage employees, attendance, and system settings</p>
-      </div>
+				{/* Statistics Cards */}
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+					<div className="card bg-gradient-to-r from-blue-600 to-blue-700">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-blue-100 text-sm">Total Employees</p>
+								<p className="text-3xl font-bold text-white">
+									{stats.totalEmployees}
+								</p>
+							</div>
+							<div className="bg-blue-800 bg-opacity-50 p-3 rounded-lg">
+								<svg
+									className="w-8 h-8 text-blue-200"
+									fill="currentColor"
+									viewBox="0 0 20 20"
+								>
+									<path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+								</svg>
+							</div>
+						</div>
+					</div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="card bg-gradient-to-r from-blue-600 to-blue-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm">Total Employees</p>
-              <p className="text-3xl font-bold text-white">{stats.totalEmployees}</p>
-            </div>
-            <div className="bg-blue-800 bg-opacity-50 p-3 rounded-lg">
-              <svg className="w-8 h-8 text-blue-200" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
+					<div className="card bg-gradient-to-r from-yellow-600 to-orange-600">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-yellow-100 text-sm">Pending Leaves</p>
+								<p className="text-3xl font-bold text-white">
+									{stats.pendingLeaves}
+								</p>
+							</div>
+							<div className="bg-yellow-700 bg-opacity-50 p-3 rounded-lg">
+								<svg
+									className="w-8 h-8 text-yellow-200"
+									fill="currentColor"
+									viewBox="0 0 20 20"
+								>
+									<path
+										fillRule="evenodd"
+										d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+										clipRule="evenodd"
+									></path>
+								</svg>
+							</div>
+						</div>
+					</div>
 
-        <div className="card bg-gradient-to-r from-yellow-600 to-orange-600">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-yellow-100 text-sm">Pending Leaves</p>
-              <p className="text-3xl font-bold text-white">{stats.pendingLeaves}</p>
-            </div>
-            <div className="bg-yellow-700 bg-opacity-50 p-3 rounded-lg">
-              <svg className="w-8 h-8 text-yellow-200" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
+					<div className="card bg-gradient-to-r from-green-600 to-green-700">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-green-100 text-sm">Present Today</p>
+								<p className="text-3xl font-bold text-white">
+									{stats.presentToday}
+								</p>
+							</div>
+							<div className="bg-green-700 bg-opacity-50 p-3 rounded-lg">
+								<svg
+									className="w-8 h-8 text-green-200"
+									fill="currentColor"
+									viewBox="0 0 20 20"
+								>
+									<path
+										fillRule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+										clipRule="evenodd"
+									></path>
+								</svg>
+							</div>
+						</div>
+					</div>
 
-        <div className="card bg-gradient-to-r from-green-600 to-green-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">Present Today</p>
-              <p className="text-3xl font-bold text-white">{stats.presentToday}</p>
-            </div>
-            <div className="bg-green-700 bg-opacity-50 p-3 rounded-lg">
-              <svg className="w-8 h-8 text-green-200" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
+					<div className="card bg-gradient-to-r from-purple-600 to-purple-700">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-purple-100 text-sm">Departments</p>
+								<p className="text-3xl font-bold text-white">
+									{stats.totalDepartments}
+								</p>
+							</div>
+							<div className="bg-purple-700 bg-opacity-50 p-3 rounded-lg">
+								<svg
+									className="w-8 h-8 text-purple-200"
+									fill="currentColor"
+									viewBox="0 0 20 20"
+								>
+									<path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+								</svg>
+							</div>
+						</div>
+					</div>
+				</div>
 
-        <div className="card bg-gradient-to-r from-purple-600 to-purple-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100 text-sm">Departments</p>
-              <p className="text-3xl font-bold text-white">{stats.totalDepartments}</p>
-            </div>
-            <div className="bg-purple-700 bg-opacity-50 p-3 rounded-lg">
-              <svg className="w-8 h-8 text-purple-200" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
+				{/* Quick Actions */}
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+					<div className="card">
+						<h3 className="text-xl font-semibold mb-4 text-primary">
+							Employee Management
+						</h3>
+						<div className="grid grid-cols-2 gap-4">
+							<button
+								onClick={() => (window.location.href = "/employee-management")}
+								className="btn-primary"
+							>
+								View All Employees ({stats.totalEmployees})
+							</button>
+							<button className="btn-secondary">Add New Employee</button>
+						</div>
+					</div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="card">
-          <h3 className="text-xl font-semibold mb-4 text-primary">Employee Management</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <button 
-              onClick={() => window.location.href = '/employee-management'}
-              className="btn-primary"
-            >
-              View All Employees ({stats.totalEmployees})
-            </button>
-            <button className="btn-secondary">Add New Employee</button>
-          </div>
-        </div>
+					<div className="card">
+						<h3 className="text-xl font-semibold mb-4 text-primary">
+							Leave Management
+						</h3>
+						<div className="grid grid-cols-2 gap-4">
+							<button
+								onClick={() => (window.location.href = "/leave-approval")}
+								className="btn-primary"
+							>
+								Pending Requests ({stats.pendingLeaves})
+							</button>
+							<button className="btn-secondary">Leave History</button>
+						</div>
+					</div>
+				</div>
 
-        <div className="card">
-          <h3 className="text-xl font-semibold mb-4 text-primary">Leave Management</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <button 
-              onClick={() => window.location.href = '/leave-approval'}
-              className="btn-primary"
-            >
-              Pending Requests ({stats.pendingLeaves})
-            </button>
-            <button className="btn-secondary">Leave History</button>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="card">
-        <h3 className="text-xl font-semibold mb-4 text-primary">Recent Activity</h3>
-        <div className="space-y-3">
-          {recentActivity.map((activity, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-              <div>
-                <p className="text-white font-medium">{activity.title}</p>
-                <p className="text-gray-400 text-sm">{activity.description}</p>
-              </div>
-              <span className={`${activity.statusColor} text-sm`}>{activity.status}</span>
-            </div>
-          ))}
-          {recentActivity.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
-              No recent activity
-            </div>
-          )}
-        </div>
-      </div>
-      </div>
-    </div>
-  );
+				{/* Recent Activity */}
+				<div className="card">
+					<h3 className="text-xl font-semibold mb-4 text-primary">
+						Recent Activity
+					</h3>
+					<div className="space-y-3">
+						{recentActivity.map((activity, index) => (
+							<div
+								key={index}
+								className="flex items-center justify-between p-3 bg-gray-700 rounded-lg"
+							>
+								<div>
+									<p className="text-white font-medium">{activity.title}</p>
+									<p className="text-gray-400 text-sm">
+										{activity.description}
+									</p>
+								</div>
+								<span className={`${activity.statusColor} text-sm`}>
+									{activity.status}
+								</span>
+							</div>
+						))}
+						{recentActivity.length === 0 && (
+							<div className="text-center py-8 text-gray-400">
+								No recent activity
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default AdminDashboard;
