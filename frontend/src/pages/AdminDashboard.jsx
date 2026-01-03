@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { employeeAPI, leaveAPI, attendanceAPI } from '../services/api';
 import { getUser } from '../utils/auth';
+import Navigation from '../components/Navigation';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -8,44 +10,122 @@ const AdminDashboard = () => {
     presentToday: 0,
     totalDepartments: 0
   });
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const user = getUser();
 
   useEffect(() => {
-    // This would normally fetch from API
-    setStats({
-      totalEmployees: 25,
-      pendingLeaves: 3,
-      presentToday: 22,
-      totalDepartments: 5
-    });
+    fetchDashboardData();
   }, []);
 
-  if (!user) {
-    return <div>Loading...</div>;
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch all data in parallel
+      const [employeesRes, leavesRes, attendanceRes] = await Promise.all([
+        employeeAPI.getAll(),
+        leaveAPI.getPending(),
+        attendanceAPI.getAll()
+      ]);
+
+      const employees = employeesRes.data;
+      const pendingLeaves = leavesRes.data;
+      const attendance = attendanceRes.data;
+
+      // Calculate today's present employees
+      const today = new Date().toISOString().split('T')[0];
+      const presentToday = attendance.filter(record => 
+        new Date(record.date).toISOString().split('T')[0] === today &&
+        record.status === 'Present'
+      ).length;
+
+      // Get unique departments
+      const departments = [...new Set(employees.map(emp => emp.department))];
+
+      // Update stats
+      setStats({
+        totalEmployees: employees.length,
+        pendingLeaves: pendingLeaves.length,
+        presentToday,
+        totalDepartments: departments.length
+      });
+
+      // Create recent activity data
+      const activities = [];
+      
+      // Add recent leave requests
+      pendingLeaves.slice(0, 3).forEach(leave => {
+        activities.push({
+          type: 'leave',
+          title: `${leave.employee.firstName} ${leave.employee.lastName} requested leave`,
+          description: `${leave.leaveType} - ${Math.ceil((new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24)) + 1} days`,
+          status: 'Pending',
+          statusColor: 'text-yellow-400'
+        });
+      });
+
+      // Add recent attendance
+      attendance.slice(0, 3).forEach(record => {
+        activities.push({
+          type: 'attendance',
+          title: `${record.employee.firstName} ${record.employee.lastName} checked ${record.checkInTime ? 'in' : 'out'}`,
+          description: record.checkInTime ? `On time - ${new Date(record.checkInTime).toLocaleTimeString()}` : 'Checked out',
+          status: 'Present',
+          statusColor: 'text-green-400'
+        });
+      });
+
+      // Add newest employees
+      const newestEmployees = employees
+        .sort((a, b) => new Date(b.joiningDate) - new Date(a.joiningDate))
+        .slice(0, 2);
+      
+      newestEmployees.forEach(employee => {
+        activities.push({
+          type: 'employee',
+          title: 'New employee joined',
+          description: `${employee.firstName} ${employee.lastName} - ${employee.position}`,
+          status: 'New',
+          statusColor: 'text-blue-400'
+        });
+      });
+
+      setRecentActivity(activities.slice(0, 5));
+
+    } catch (error) {
+      setError('Failed to fetch dashboard data');
+      console.error('Dashboard data fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="min-h-screen bg-dark flex items-center justify-center">Loading dashboard...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-dark flex items-center justify-center">
+        <div className="text-red-400 text-center">
+          <p className="text-xl mb-4">Error loading dashboard</p>
+          <p className="text-sm">{error}</p>
+          <button 
+            onClick={fetchDashboardData}
+            className="mt-4 px-4 py-2 bg-primary rounded hover:bg-primary/80"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-dark p-6">
-      <nav className="bg-gray-800 rounded-lg p-4 mb-6 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-primary">Dayflow HRMS - Admin Panel</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          <span className="text-gray-300">
-            Admin: {user.employee?.firstName} {user.employee?.lastName}
-          </span>
-          <button 
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = '/signin';
-            }}
-            className="btn-secondary"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-dark">
+      <Navigation />
+      <div className="p-6">
 
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h2>
@@ -116,7 +196,12 @@ const AdminDashboard = () => {
         <div className="card">
           <h3 className="text-xl font-semibold mb-4 text-primary">Employee Management</h3>
           <div className="grid grid-cols-2 gap-4">
-            <button className="btn-primary">View All Employees</button>
+            <button 
+              onClick={() => window.location.href = '/employee-management'}
+              className="btn-primary"
+            >
+              View All Employees ({stats.totalEmployees})
+            </button>
             <button className="btn-secondary">Add New Employee</button>
           </div>
         </div>
@@ -124,7 +209,12 @@ const AdminDashboard = () => {
         <div className="card">
           <h3 className="text-xl font-semibold mb-4 text-primary">Leave Management</h3>
           <div className="grid grid-cols-2 gap-4">
-            <button className="btn-primary">Pending Requests ({stats.pendingLeaves})</button>
+            <button 
+              onClick={() => window.location.href = '/leave-approval'}
+              className="btn-primary"
+            >
+              Pending Requests ({stats.pendingLeaves})
+            </button>
             <button className="btn-secondary">Leave History</button>
           </div>
         </div>
@@ -134,28 +224,22 @@ const AdminDashboard = () => {
       <div className="card">
         <h3 className="text-xl font-semibold mb-4 text-primary">Recent Activity</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-            <div>
-              <p className="text-white font-medium">John Doe requested leave</p>
-              <p className="text-gray-400 text-sm">Sick leave - 2 days</p>
+          {recentActivity.map((activity, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+              <div>
+                <p className="text-white font-medium">{activity.title}</p>
+                <p className="text-gray-400 text-sm">{activity.description}</p>
+              </div>
+              <span className={`${activity.statusColor} text-sm`}>{activity.status}</span>
             </div>
-            <span className="text-yellow-400 text-sm">Pending</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-            <div>
-              <p className="text-white font-medium">Jane Smith checked in</p>
-              <p className="text-gray-400 text-sm">On time - 9:00 AM</p>
+          ))}
+          {recentActivity.length === 0 && (
+            <div className="text-center py-8 text-gray-400">
+              No recent activity
             </div>
-            <span className="text-green-400 text-sm">Present</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-            <div>
-              <p className="text-white font-medium">New employee joined</p>
-              <p className="text-gray-400 text-sm">Mike Johnson - Developer</p>
-            </div>
-            <span className="text-blue-400 text-sm">New</span>
-          </div>
+          )}
         </div>
+      </div>
       </div>
     </div>
   );

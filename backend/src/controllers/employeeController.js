@@ -55,6 +55,36 @@ const getEmployeeById = async (req, res) => {
   }
 };
 
+// Get my profile (Employee)
+const getMyProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    const employee = await prisma.employee.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            employeeId: true,
+            role: true,
+          }
+        }
+      }
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    res.json(employee);
+  } catch (error) {
+    console.error('Get my profile error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 // Update employee profile
 const updateEmployee = async (req, res) => {
   try {
@@ -81,4 +111,4 @@ const updateEmployee = async (req, res) => {
   }
 };
 
-module.exports = { getAllEmployees, getEmployeeById, updateEmployee };
+module.exports = { getAllEmployees, getEmployeeById, getMyProfile, updateEmployee };

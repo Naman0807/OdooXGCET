@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { payrollAPI } from '../services/api';
 import { getUser } from '../utils/auth';
+import Navigation from '../components/Navigation';
 
 const Payroll = () => {
   const [payrollData, setPayrollData] = useState(null);
@@ -38,26 +39,9 @@ const Payroll = () => {
   if (loading) return <div className="min-h-screen bg-dark flex items-center justify-center">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-dark p-6">
-      <nav className="bg-gray-800 rounded-lg p-4 mb-6 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-primary">Dayflow HRMS</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          <span className="text-gray-300">
-            {user.employee?.firstName} {user.employee?.lastName}
-          </span>
-          <button 
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = '/signin';
-            }}
-            className="btn-secondary"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-dark">
+      <Navigation />
+      <div className="p-6">
 
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Payroll Information</h2>
@@ -194,6 +178,7 @@ const Payroll = () => {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 };

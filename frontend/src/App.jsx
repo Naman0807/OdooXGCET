@@ -8,6 +8,8 @@ import Attendance from './pages/Attendance';
 import Profile from './pages/Profile';
 import LeaveManagement from './pages/LeaveManagement';
 import Payroll from './pages/Payroll';
+import EmployeeManagement from './pages/EmployeeManagement';
+import LeaveApproval from './pages/LeaveApproval';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -61,6 +63,22 @@ function App() {
           element={
             <PrivateRoute>
               <Payroll />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/employee-management"
+          element={
+            <PrivateRoute requiredRole="Admin">
+              <EmployeeManagement />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/leave-approval"
+          element={
+            <PrivateRoute requiredRole="Admin">
+              <LeaveApproval />
             </PrivateRoute>
           }
         />

@@ -25,6 +25,7 @@ export const authAPI = {
 export const employeeAPI = {
   getAll: () => api.get('/employees'),
   getById: (id) => api.get(`/employees/${id}`),
+  getMe: () => api.get('/employees/me'),
   update: (id, data) => api.put(`/employees/${id}`, data),
 };
 
