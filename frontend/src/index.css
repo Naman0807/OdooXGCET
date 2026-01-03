@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-dark text-white font-sans;
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-secondary text-white rounded-lg hover:bg-cyan-600 transition;
+}
+
+.input-field {
+  @apply w-full px-4 py-2 rounded-lg bg-dark border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-primary;
+}
+
+.card {
+  @apply bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-lg;
+}

@@ -1,0 +1,100 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  employeeId    String    @unique
+  role          String    // "Employee" or "Admin"
+  employee      Employee?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+}
+
+model Employee {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName     String
+  lastName      String
+  department    String
+  position      String
+  phone         String?
+  address       String?
+  joiningDate   DateTime
+  profilePic    String?   // Store as URL or base64
+  
+  // Salary info
+  salaryBasic   Float
+  salaryAllowance Float
+  salaryDeduction Float
+  
+  // Relations
+  attendances   Attendance[]
+  leaves        Leave[]
+  salaries      Salary[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Attendance {
+  id            String    @id @default(cuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date          DateTime
+  status        String    // "Present", "Absent", "Half-day", "Leave"
+  checkInTime   DateTime?
+  checkOutTime  DateTime?
+  remarks       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([employeeId, date])
+  @@index([employeeId, date])
+}
+
+model Leave {
+  id            String    @id @default(cuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType     String    // "Paid", "Sick", "Unpaid"
+  startDate     DateTime
+  endDate       DateTime
+  remarks       String?
+  status        String    @default("Pending")  // "Pending", "Approved", "Rejected"
+  adminComments String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([employeeId, status])
+}
+
+model Salary {
+  id            String    @id @default(cuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  month         Int       // 1-12
+  year          Int       // 2024
+  basic         Float
+  allowance     Float
+  deduction     Float
+  netSalary     Float
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([employeeId, month, year])
+  @@index([employeeId])
+}

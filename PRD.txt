@@ -1,0 +1,454 @@
+# DAYFLOW - HRMS
+## Product Requirements Document & 8-Hour Execution Plan
+
+---
+
+## SECTION 1: EXECUTIVE SUMMARY
+
+**Product Name:** Dayflow - Human Resource Management System
+**Timeline:** 8 hours
+**Target Users:** Employees & HR/Admin staff
+**Core Value:** Streamline HR operations with role-based access and approval workflows
+
+---
+
+## SECTION 2: PRD - PRODUCT REQUIREMENTS DOCUMENT
+
+### 2.1 Purpose & Scope
+To create a functional MVP (Minimum Viable Product) HRMS that handles:
+- User authentication (Sign Up/Sign In)
+- Role-based dashboards (Admin vs Employee)
+- Employee profile management
+- Attendance tracking
+- Leave management with approval workflow
+- Payroll visibility (read-only)
+
+### 2.2 Core Features (MVP Only)
+
+#### Feature 1: Authentication & Authorization
+- **Sign Up:** Email, Password, Employee ID, Role selection
+- **Sign In:** Email & password login
+- **Security:** Basic password validation, session management
+- **Priority:** CRITICAL (must complete first)
+
+#### Feature 2: Dashboard (Role-Based)
+**Employee Dashboard:**
+- Quick access cards: Profile, Attendance, Leave Requests, Logout
+- Welcome message with name
+
+**Admin Dashboard:**
+- Employee list view
+- Pending leave approvals count
+- Navigation to each section
+
+#### Feature 3: Employee Profile
+- View personal details (Name, Email, Employee ID, Phone, Address)
+- View job details (Department, Position, Joining Date)
+- View salary structure (Basic, Allowances, Deductions) - read-only
+- Profile picture display
+- Edit functionality for employees (phone, address only)
+- Admin can edit all fields
+
+#### Feature 4: Attendance Management
+- Daily attendance view with status (Present/Absent/Half-day/Leave)
+- Weekly summary view
+- Check-in/Check-out timestamps for current day only
+- Read-only for employees (own attendance only)
+- Admin can view all employees' attendance
+
+#### Feature 5: Leave Management
+**Employee:**
+- Apply for leave (type, date range, remarks)
+- View leave request status
+- Leave balance display
+
+**Admin:**
+- View all pending leave requests
+- Approve/Reject with comments
+- View leave history
+
+#### Feature 6: Payroll Management
+- Employee: View only own salary structure & salary history
+- Admin: View all employees' payroll data
+
+---
+
+## SECTION 3: USER FLOWS
+
+### Flow 1: User Registration & Login
+1. User lands on Sign Up page
+2. Enters Email, Password, Employee ID, selects Role (Employee/Admin)
+3. Password validation (min 8 chars, 1 uppercase, 1 number)
+4. Account created → Redirect to Sign In
+5. User logs in with credentials
+6. Role-based dashboard loads
+
+### Flow 2: Employee Views Profile
+1. Employee clicks "Profile" from dashboard
+2. Personal/Job/Salary details load
+3. Edit button available for limited fields
+4. Admin can access any employee profile from list
+
+### Flow 3: Employee Applies for Leave
+1. Employee clicks "Apply Leave"
+2. Select leave type (Paid/Sick/Unpaid)
+3. Choose date range
+4. Add remarks
+5. Submit → Status shows "Pending"
+6. Admin notification badge updates
+
+### Flow 4: Admin Approves Leave
+1. Admin sees pending requests on dashboard
+2. Clicks on request → Details open
+3. Can approve/reject with comments
+4. Employee sees updated status in real-time
+
+---
+
+## SECTION 4: DATA MODEL (Simplified)
+
+```
+Users Table:
+- user_id (PK)
+- email
+- password (hashed)
+- employee_id (unique)
+- role (Employee/Admin)
+- created_at
+
+Employee Table:
+- employee_id (PK)
+- first_name, last_name
+- department, position
+- phone, address
+- joining_date
+- salary_basic
+- salary_allowance
+- salary_deductions
+
+Attendance Table:
+- attendance_id (PK)
+- employee_id (FK)
+- date
+- status (Present/Absent/Half-day/Leave)
+- check_in, check_out
+- remarks
+
+Leave Table:
+- leave_id (PK)
+- employee_id (FK)
+- leave_type (Paid/Sick/Unpaid)
+- start_date, end_date
+- status (Pending/Approved/Rejected)
+- remarks
+- admin_comments
+- created_at
+
+Salary Table:
+- salary_id (PK)
+- employee_id (FK)
+- month, year
+- basic, allowance, deduction, net
+- created_at
+```
+
+---
+
+## SECTION 5: UI/UX REQUIREMENTS
+
+### Navigation Structure
+- Top navbar with logo, user name, and logout
+- Sidebar with menu (Dashboard, Profile, Attendance, Leave, Payroll, Admin Panel)
+- Responsive design (desktop-first)
+
+### Color Scheme
+- Primary: Dark with accent colors (purple/teal)
+- Background: Dark theme (as shown in designs)
+- Alerts: Green (success), Red (error), Orange (warning)
+
+### Key Screens to Build
+1. Sign Up/Sign In page
+2. Employee Dashboard
+3. Admin Dashboard
+4. Employee Profile (view + edit)
+5. Attendance View (daily + weekly)
+6. Leave Request Form
+7. Leave Approval Panel (Admin)
+8. Payroll View
+
+---
+
+## SECTION 6: TECHNICAL REQUIREMENTS
+
+### Tech Stack (Recommended for 8-hour sprint)
+- **Frontend:** React + Tailwind CSS (or basic CSS)
+- **Backend:** Node.js + Express (or use Firebase/Supabase)
+- **Database:** PostgreSQL/MySQL or Firebase Firestore
+- **Authentication:** JWT or Firebase Auth
+- **Hosting:** Vercel (Frontend), Heroku/Railway (Backend)
+
+### Non-Functional Requirements
+- Load time < 2 seconds
+- Mobile responsive
+- Data encryption for sensitive fields (password)
+- Session timeout after 30 mins inactivity
+- Basic error handling & validation
+
+---
+
+## SECTION 7: 8-HOUR EXECUTION PLAN
+
+### Phase Timeline Breakdown
+
+#### **PHASE 1: SETUP (0:00 - 0:45) - 45 minutes**
+
+**Task 1.1 - Project Setup (15 min)**
+- [ ] Create React app with Vite
+- [ ] Install dependencies (React Router, Tailwind CSS, Axios)
+- [ ] Set up folder structure (components, pages, utils, assets)
+- [ ] Basic styling setup
+
+**Task 1.2 - Backend & Database Setup (30 min)**
+- [ ] Choose: Firebase Firestore (fastest) OR Supabase (more control)
+- [ ] Set up authentication rules
+- [ ] Create basic API routes for sign up/sign in
+- [ ] Test authentication flow
+
+**Output:** Boilerplate ready, empty app running
+
+---
+
+#### **PHASE 2: AUTHENTICATION (0:45 - 2:00) - 1 hour 15 minutes**
+
+**Task 2.1 - Sign Up Page (30 min)**
+- [ ] Design Sign Up form (Email, Password, Employee ID, Role dropdown)
+- [ ] Password validation logic
+- [ ] Form submission & user creation
+- [ ] Error handling
+
+**Task 2.2 - Sign In Page (25 min)**
+- [ ] Design Sign In form
+- [ ] Login logic with JWT/Firebase tokens
+- [ ] Store auth token in localStorage
+- [ ] Redirect on success
+
+**Task 2.3 - Route Protection (20 min)**
+- [ ] Create PrivateRoute component
+- [ ] Implement role-based routing
+- [ ] Add logout functionality
+
+**Output:** Users can sign up, sign in, logout. Routes protected by role.
+
+---
+
+#### **PHASE 3: DASHBOARDS (2:00 - 3:30) - 1 hour 30 minutes**
+
+**Task 3.1 - Employee Dashboard (45 min)**
+- [ ] Create dashboard layout with navbar
+- [ ] Add quick-access cards (Profile, Attendance, Leave Requests)
+- [ ] Display employee greeting with name
+- [ ] Add basic navigation to other pages
+
+**Task 3.2 - Admin Dashboard (45 min)**
+- [ ] Create admin layout
+- [ ] Display employee list (table)
+- [ ] Show pending leave count badge
+- [ ] Quick navigation to approvals section
+
+**Output:** Both dashboards functional with navigation working.
+
+---
+
+#### **PHASE 4: EMPLOYEE PROFILE (3:30 - 4:45) - 1 hour 15 minutes**
+
+**Task 4.1 - View Profile Page (35 min)**
+- [ ] Fetch employee data from database
+- [ ] Display personal, job, and salary sections
+- [ ] Show profile picture placeholder
+- [ ] Format salary details nicely
+
+**Task 4.2 - Edit Profile (40 min)**
+- [ ] Add edit mode toggle
+- [ ] Allow editing: phone, address, profile picture
+- [ ] Validation & update to database
+- [ ] Success/error messages
+
+**Output:** Employees can view and edit limited profile fields.
+
+---
+
+#### **PHASE 5: ATTENDANCE (4:45 - 6:00) - 1 hour 15 minutes**
+
+**Task 5.1 - Daily Attendance View (35 min)**
+- [ ] Fetch today's & past attendance from DB
+- [ ] Display status with color coding
+- [ ] Show check-in/check-out times
+- [ ] Add check-in/check-out button for today only
+
+**Task 5.2 - Weekly View (40 min)**
+- [ ] Create weekly summary table
+- [ ] Calculate attendance percentage
+- [ ] Add filtering by month/year
+- [ ] Admin view for all employees
+
+**Output:** Attendance tracking fully functional.
+
+---
+
+#### **PHASE 6: LEAVE MANAGEMENT (6:00 - 7:15) - 1 hour 15 minutes**
+
+**Task 6.1 - Leave Application (35 min)**
+- [ ] Create leave request form
+- [ ] Leave type dropdown (Paid/Sick/Unpaid)
+- [ ] Date range picker
+- [ ] Add remarks textarea
+- [ ] Submit & save to database
+
+**Task 6.2 - Leave Approval (40 min)**
+- [ ] Create leave approval page (Admin only)
+- [ ] Display pending requests in a table
+- [ ] Approve/Reject buttons with modal
+- [ ] Add comments field
+- [ ] Update status in database
+- [ ] Show approval history
+
+**Output:** Complete leave workflow functional (apply → approve → view).
+
+---
+
+#### **PHASE 7: PAYROLL & FINAL POLISH (7:15 - 8:00) - 45 minutes**
+
+**Task 7.1 - Payroll View (25 min)**
+- [ ] Display payroll structure (Basic, Allowances, Deductions, Net)
+- [ ] Show salary history (last 6 months)
+- [ ] Admin can view all employees' payroll
+- [ ] Read-only for employees
+
+**Task 7.2 - Final Polish (20 min)**
+- [ ] Test all flows end-to-end
+- [ ] Fix critical bugs
+- [ ] Add loading spinners
+- [ ] Verify responsive design
+- [ ] Add 2-3 validation error cases
+- [ ] Document any incomplete features
+
+**Output:** MVP ready for demo/testing.
+
+---
+
+## SECTION 8: SPRINT CHECKLIST
+
+### Critical Path (MUST COMPLETE)
+- [x] Authentication (Sign Up/Sign In)
+- [x] Role-based dashboards
+- [x] Employee profile view
+- [x] Attendance view & check-in
+- [x] Leave application & approval
+- [x] Payroll view
+
+### Nice-to-Have (IF TIME ALLOWS)
+- [ ] Email notifications
+- [ ] Analytics dashboard
+- [ ] Attendance reports export
+- [ ] Leave balance calculation
+- [ ] Profile picture upload
+
+### NOT INCLUDED (Post-MVP)
+- [ ] Advanced analytics
+- [ ] Performance reviews
+- [ ] Shift management
+- [ ] Expense tracking
+- [ ] Multi-language support
+
+---
+
+## SECTION 9: TESTING STRATEGY
+
+### Manual Testing (Per Phase)
+1. After Auth: Test sign up validation, sign in, logout
+2. After Dashboards: Verify role-based access, navigation
+3. After Profile: Edit, save, verify data persistence
+4. After Attendance: Check-in works, history loads
+5. After Leave: Application saved, approval updates status
+6. After Payroll: Data displays correctly, calculations accurate
+
+### Test Cases (Minimum)
+- Valid login credentials → Access granted
+- Invalid credentials → Error message shown
+- Employee accessing admin panel → Redirect to employee dashboard
+- Leave approval → Employee status updates in real-time
+- Attendance check-in → Timestamp saved
+- Profile edit → Data persists after refresh
+
+---
+
+## SECTION 10: DEPLOYMENT CHECKLIST
+
+### Before Deployment
+- [ ] All routes working
+- [ ] No console errors
+- [ ] Database connected and tested
+- [ ] Auth tokens secure
+- [ ] Responsive on mobile
+- [ ] Error handling in place
+
+### Deployment Steps
+1. Push to GitHub
+2. Deploy frontend to Vercel
+3. Deploy backend to Heroku/Railway
+4. Set environment variables
+5. Test live deployment
+
+---
+
+## SECTION 11: IMPORTANT NOTES
+
+### Time Allocation Summary
+- Setup: 45 min
+- Auth: 75 min
+- Dashboards: 90 min
+- Profile: 75 min
+- Attendance: 75 min
+- Leave: 75 min
+- Payroll & Polish: 45 min
+- **Total: 480 minutes (8 hours)**
+
+### Tips to Stay on Schedule
+1. **Use Firebase/Supabase** - Fastest backend setup
+2. **Pre-made UI components** - Use Tailwind template
+3. **Mock data** - Use dummy data first, connect DB later
+4. **Focus on happy path** - Skip edge cases in 8-hour sprint
+5. **Parallelize** - If team of 2+, split frontend & backend
+6. **Avoid perfectionism** - Functional > Beautiful at this stage
+
+### If Running Behind
+- Skip advanced features first
+- Remove weekly attendance view (keep daily only)
+- Simplify payroll to essential fields
+- Remove admin analytics
+- Focus on core happy path only
+
+### If Ahead of Schedule
+- Add email notifications
+- Build attendance reports export
+- Add leave balance calculator
+- Create admin analytics dashboard
+- Build profile picture upload
+
+---
+
+## SECTION 12: GLOSSARY
+
+- **MVP:** Minimum Viable Product - smallest working version
+- **JWT:** JSON Web Token - for secure authentication
+- **CRUD:** Create, Read, Update, Delete operations
+- **Role-based Access:** Different features based on user role
+- **Status:** Current state (Pending, Approved, Rejected, etc.)
+- **Payload:** Data sent in request body
+- **Token:** Authentication identifier stored in browser
+
+---
+
+**Last Updated:** January 3, 2026
+**Status:** Ready for Development
+**Difficulty Level:** Moderate (Tight Timeline)
