@@ -4,15 +4,14 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import EmailVerification from './pages/EmailVerification';
 import ResendVerification from './pages/ResendVerification';
-import Rules from './pages/Rules';
-import RuleCategory from './pages/RuleCategory';
+import Rules from './components/RulesDashboard';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Attendance from './pages/Attendance';
 import Profile from './pages/Profile';
 import LeaveManagement from './pages/LeaveManagement';
-import Payroll from './pages/Payroll';
-import EmployeeManagement from './pages/EmployeeManagement';
+import Payroll from './components/Payroll';
+import Employees from './components/Employees';
 import LeaveApproval from './pages/LeaveApproval';
 import NotFound from './pages/NotFound';
 
@@ -25,7 +24,6 @@ function App() {
         <Route path="/verify-email/:token" element={<EmailVerification />} />
         <Route path="/resend-verification" element={<ResendVerification />} />
         <Route path="/rules" element={<Rules />} />
-        <Route path="/rules/:category" element={<RuleCategory />} />
         <Route
           path="/dashboard"
           element={
@@ -78,7 +76,7 @@ function App() {
           path="/employee-management"
           element={
             <PrivateRoute requiredRole="Admin">
-              <EmployeeManagement />
+              <Employees />
             </PrivateRoute>
           }
         />
